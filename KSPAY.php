@@ -1,4 +1,6 @@
 <?php
+// Source : https://github.com/Renyu106/KSPAY-PAYMENT-API
+
 class KSPAY
 {
     private $PAYKEY;
@@ -27,7 +29,7 @@ class KSPAY
                     $KSPAY_RETURN[$PARAM_NAME[$i]] = iconv("EUC-KR", "UTF-8", $PARAM_DATA[$i+1]);
                 }
             }
-
+            
             $KSPAY_DT_PAYMETHOD = $this->GET_PAYMEYHOD($KSPAY_RETURN['result'], $KSPAY_DT_PAYMETHOD_1);
 
             if ($KSPAY_DT_PAYMETHOD_1 == "CARD") {
@@ -47,6 +49,7 @@ class KSPAY
                     $KSPAY_RETURN['msg2'],
                 ),
                 "PAYMETHOD" => $KSPAY_DT_PAYMETHOD,
+                "PAYMETHOD_ID" => $KSPAY_DT_PAYMETHOD_1,
                 "ORDER_NO" => $KSPAY_RETURN['ordno'],
                 "AMOUNT" => $KSPAY_RETURN['amt'],
                 "TRANSACTION_NO" => $KSPAY_RETURN['trno'],
@@ -67,24 +70,28 @@ class KSPAY
         return $RETURN;
     }
 
-    private const KSPAY_WEBHOST_URI = "/store/KSPayWebV1.4/web_host/recv_post.jsp";
-    private const KSPAY_WEBHOST_HOST = "kspay.ksnet.to";
-    private const KSPAY_WEBHOST_IP = "210.181.28.137";
+    private $KSPAY_WEBHOST_URI = "/store/KSPayWebV1.4/web_host/recv_post.jsp";
+    private $KSPAY_WEBHOST_HOST = "kspay.ksnet.to";
+    private $KSPAY_WEBHOST_IP = "210.181.28.137";
 
     private function SOCKET()
     {
+        $KSPAY_WEBHOST_HOST = "kspay.ksnet.to";
+        $KSPAY_WEBHOST_IP = "210.181.28.137";
+        $KSPAY_WEBHOST_URI = "/store/KSPayWebV1.4/web_host/recv_post.jsp";
+        
         $PAYLOAD = "sndCommConId={$this->PAYKEY}&sndActionType={$this->MTYPE}&sndRpyParams=" . urlencode($this->GET_PARAM);
-        $REQUEST = "Host: " . self::KSPAY_WEBHOST_HOST . "\r\n";
+        $REQUEST = "Host: " . $KSPAY_WEBHOST_HOST . "\r\n";
         $REQUEST .= "Accept-Language: ko\r\n";
         $REQUEST .= "User-Agent: Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)\r\n";
         $REQUEST .= "Content-type: application/x-www-form-urlencoded\r\n";
         $REQUEST .= "Content-length: " . strlen($PAYLOAD) . "\r\n";
         $REQUEST .= "Connection: close\r\n";
 
-		if( gethostbyname(self::KSPAY_WEBHOST_HOST) == self::KSPAY_WEBHOST_HOST) $KSPAY_IP = self::KSPAY_WEBHOST_IP;
-		else $KSPAY_IP = gethostbyname(self::KSPAY_WEBHOST_HOST);
+		if( gethostbyname($KSPAY_WEBHOST_HOST) == $KSPAY_WEBHOST_HOST) $KSPAY_IP = $KSPAY_WEBHOST_IP;
+		else $KSPAY_IP = gethostbyname($KSPAY_WEBHOST_HOST);
 
-        $REQUEST  = "POST " . self::KSPAY_WEBHOST_URI . " HTTP/1.0\r\n" . $REQUEST;
+        $REQUEST  = "POST " . $KSPAY_WEBHOST_URI . " HTTP/1.0\r\n" . $REQUEST;
 		$RPY_MSG = "";
         $REQUEST .= "\r\n";
         $REQUEST .= $PAYLOAD;
@@ -113,11 +120,11 @@ class KSPAY
                 $PAYMETHOD = "CARD";
                 return "신용카드";
             case '2':
-                $PAYMETHOD = "VIRTUAL_ACCOUNT";
+                $PAYMETHOD = "TRANSFER";
                 return "실시간 계좌 이체";
             case '6':
                 $PAYMETHOD = "VIRTUAL_ACCOUNT";
-                return "가상 계좌 발급";
+                return "가상 계좌";
             case 'M':
                 return "휴대폰 결제";
             case 'G':
